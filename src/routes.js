@@ -15,6 +15,7 @@ import Newrequestfile from './pages/Newrequestfile';
 import Imagereference from './pages/Imagereference';
 import Patients from './Patients/PatientLogin';
 import PatientHome from './Patients/PatientHome';
+import WorkerRequestDetail from './pages/WorkerRequestDetail'
 
 // NHS
 import NHSNewrequest from './NHS/NewRequest';
@@ -38,10 +39,9 @@ export default function Router() {
         { path: '/home/list', element: <ViewRequests />},
         { path: 'createRequest', element: <NewRequest /> },
         { path: '/Detail/:requestid', element: <RequestDetail /> },
+        { path: '/Worker/:requestid', element: <WorkerRequestDetail /> },
         { path: ':requestid/UploadReports', element: <Newrequestfile /> },
         { path: ':requestid/UploadReference', element: <Imagereference /> },
-        { path: '*', element: <Navigate to="/404" /> }
-
       ],
     },
     {
@@ -56,11 +56,11 @@ export default function Router() {
       ],
     },
     {
-      path: '/worker/view',
+      path: '/worker/',
       element: < ViewRequests/>,
       children: [
         { path: 'user', element: <ViewRequests />},
-        { path: ':requestid', element: <RequestDetail /> },
+        { path: 'Detail/:requestid', element: <WorkerRequestDetail /> },
         { path: '*', element: <Navigate to="/404" /> }
       ],
     },

@@ -9,6 +9,9 @@ import PropTypes from 'prop-types';
 import Alert from '@mui/material/Alert';
 import { isArray } from 'lodash';
 
+import {config} from '../config';
+import { authHeader } from '../helpers/authHeader';
+
 
 
 
@@ -100,6 +103,7 @@ const destroyDropzone =() =>{
 const OnUploadHadler = () =>{
       const formData = new FormData();
       formData.append('requestid',requestid);
+      formData.append('appid',process.env.REACT_APP_ID);
       files.forEach((file)=>{
         formData.append("files[]",file);
       });
@@ -108,11 +112,9 @@ const OnUploadHadler = () =>{
 const sendUpoad= (formData)=>{
       axios({
         method: "POST",
-        url: "https://meindoc.app/backend/api/upload_video.php",
+        headers: authHeader(),
+        url:`${config.DP_ROOT_URL}/upload_video.php`,
         data: formData,
-        headers: {
-          "Content-Type": "multipart/form-data"
-        },
         cancelToken : new CancelToken(cancel =>{
           cancelFileupload.current = cancel
         }),
@@ -128,8 +130,10 @@ const sendUpoad= (formData)=>{
                 }
               }
       }).then((response)=>{
-        if(response.status === 200 && isArray(response.data)){  
-          props.func(response.data[0].file)
+        console.log(response);
+        if(response.data.success){
+          props.func(response.data[0].file);
+          console.log("hello")
           setFileuploadresponse(true);
           setUploaded(true);
     
@@ -193,7 +197,7 @@ const sendUpoad= (formData)=>{
                 </Dropzone> 
              <h5 style={{color:'darkgray',fontWeight:400,fontStyle: 'italic'}}>Note : only (.mp4) accepted</h5>
              <aside>
-               <h4>Video</h4>
+               <h5>Video</h5>
                {files.map((file,index)=>{
                 return <li key={index}>{file.path} - {((file.size/1020)/1020).toFixed(1)} MB</li>
                })}

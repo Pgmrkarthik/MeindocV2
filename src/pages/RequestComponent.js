@@ -97,14 +97,15 @@ function RequestComponent({name, requestid,request, hideViewButton = false, stat
   // route handler
 
   const handleRoute = () => {
-  
     if(user.hospital === "NHS"){
       navigate(`/NHS/${requestid}`, { state: request });
     }
-    else{
+    if(user.role === Role.DOCTOR ){
       navigate(`/Detail/${requestid}`, { state: request });
     }
-
+    if(user.role === Role.WORKER ){
+      navigate(`/Worker/${requestid}`, { state: request });
+    } 
   }
   return (
     <>
@@ -211,9 +212,7 @@ function RequestComponent({name, requestid,request, hideViewButton = false, stat
       </Box>
     </Card>
       }
-    </>
-        
-      
+    </>     
   );
 }
 

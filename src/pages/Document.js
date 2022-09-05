@@ -10,6 +10,10 @@ import Alert from '@mui/material/Alert';
 import { isArray } from 'lodash';
 import Iconify from '../components/Iconify';
 
+import {config} from '../config';
+import { authHeader } from '../helpers/authHeader';
+import { handleResponse } from '../helpers/handle_response';
+
 LinearProgressWithLabel.propTypes = {
   /**
    * The value of the progress indicator for the determinate and buffer variants.
@@ -62,10 +66,6 @@ function LinearProgressWithLabel(props) {
   );
 }
 
-
-
-
-
 function Document(props) {
 
      const {requestid} = useParams();
@@ -106,28 +106,23 @@ function Document(props) {
       setProgress(0);
     }
 
-    
-
     const OnUploadHadler = () =>{
       const formData = new FormData();
       formData.append('requestid',requestid);
+      formData.append('appid',process.env.REACT_APP_ID);
       files.forEach((file,index)=>{
         formData.append("files[]",file);
       });
       sendUpoad(formData,setProgress);
-      
     };
 
 
-    const sendUpoad= (formData)=>{
-    
+    const sendUpoad= (formData) => {
       axios({
         method: "POST",
-        url: "https://meindoc.app/backend/api/upload_document.php",
+        headers: authHeader(),
+        url:`${config.DP_ROOT_URL}/upload_document.php`,
         data: formData,
-        headers: {
-          "Content-Type": "multipart/form-data"
-        },
         cancelToken : new CancelToken(cancel =>{
           cancelFileupload.current = cancel
         }),
@@ -138,49 +133,42 @@ function Document(props) {
                   setProgress(progressEvent.loaded/progressEvent.total*100);
                 }
                 if(progressEvent.loaded === progressEvent.total){
-
                   destroyDropzone();
                 }
               }
       }).then((response)=>{
-  
-        if(response.status === 200 && isArray(response.data)){  
-          props.func(response.data[0].file)
-          setFileuploadresponse(true);
-          setUploaded(true);
-          const rid = requestid
-          const datas = {
-            appid:process.env.REACT_APP_ID,
-            requestid:rid,
-            message:'Document',
-          }
-       
-          setTimeout(()=>{
-            setFileuploadresponse(false);
-          },3000);
-        }
-        else{
-          setErrorresponse(true);
-          setTimeout(()=>{
-            setErrorresponse(true)
-          },3000);
-        }
-      }).catch((error)=>{
-        if(isCancel(error)){
-          alert(error.message);
-        }
-       
-      });
-    }
+        console.log(response);
+          const data = response.data;
+          console.log(data);
+          if(data.success === 1){
+            props.func(response.data[0].file)
+            console.log(response.data[0].file)
+            setFileuploadresponse(true);
+            setUploaded(true);
+            setTimeout(()=>{
+              setFileuploadresponse(false);
+            },3000);
+          }else{
+            setErrorresponse(true);
+            setTimeout(()=>{
+              setErrorresponse(false)
+            },3000);
+          } 
+      }); 
+    }   
+
+
     useEffect(()=>{
       setFiles(acceptedFiles)
-    },[acceptedFiles])
+    },[acceptedFiles]);
+
     const cancelUpload =()=>{
       if(cancelFileupload.current){
         cancelFileupload.current("File upload cancelled!")
         destroyDropzone();
       }
     } 
+
 
   return (
     <section className="container">
@@ -201,7 +189,7 @@ function Document(props) {
                 </Dropzone> 
              <h5 style={{color:'darkgray',fontWeight:400,fontStyle: 'italic'}}>Note : only (.pdf) accepted</h5>
              <aside>
-               <h4>Document</h4>
+               <h5>Document</h5>
                {files.map((file,index)=>{
                 return <li key={index}>{file.path} - {((file.size/1020)/1020).toFixed(1)} MB</li>
                })}
@@ -233,4 +221,5 @@ function Document(props) {
   </section>
   )
 }
-export default Document   
+
+export default Document;

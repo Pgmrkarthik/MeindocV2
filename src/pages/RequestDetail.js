@@ -21,13 +21,10 @@ import Page from '../components/Page';
 import Iconify from '../components/Iconify';
 import Data from './RequestComponent';
 import Label from '../components/Label';
-import useAuth from '../hooks/useAuth';
-import Video from './Video';
-import Document from './Document';
-import FileUpload from '../sections/newrequest/FileUpload';
 
-import  authHeader  from '../helpers/authHeader';
+import  {authHeader}  from '../helpers/authHeader';
 import { authenticationService } from '../services/authservices';
+import { config } from '../config';
 
 
 function RequestDetail() {
@@ -42,6 +39,7 @@ function RequestDetail() {
     const [documentRejected,setDocumentRejected] = useState([]);
 
     const [isReviewed, setIsReviewed] = useState(false);
+
     // video description...
     const [descriptionOn, setDescriptionOn] = useState(false);
     const [newdescription, setDescription] = useState('');
@@ -53,13 +51,12 @@ function RequestDetail() {
 
     const {t} = useTranslation();
 
-    const setvideourlfunc = ()=>{
+    const setvideourlfunc = ()=> {
         if(patientData.VideoUrl !== null ){
             const values =JSON.parse(patientData.VideoUrl)
             setVideoUrl(values[0].file)
         }
     }
-
 
     const setdocumentUrlfunc = () => {
         if(patientData.documentUrl !== null){
@@ -88,14 +85,6 @@ function RequestDetail() {
         });
     }
 
-    // function properties for worker Video upload url generation
-    const getData = (data) => {  
-        setVideoUrl(data);
-    }
-    const getDocumentData = (data) => {  
-        setDocumentUrl(data);
-    }
-
 //  send description and Update the status 
     const RejectVideoUpdateDescription =()=>{
         const rejectreason = {
@@ -106,15 +95,14 @@ function RequestDetail() {
             appid:process.env.REACT_APP_ID,
             requestid:patientData.requestid,
             description:rejectreason,
+            content:"Video",
             status:4
         }
         axios({
             method: "POST",
-            url: "https://meindoc.app/backend/api/update_description.php",
+            url: `${config.DP_ROOT_URL}/Update_description.php`,
             data: JSON.stringify(data),
-            headers: {
-                "Content-Type": 'application/json'
-            }
+            headers: authHeader()
         }).then((response)=>{
             if(response.data.success === 1 && response.data.message ==="ok" && response.data.data){
                 setVideoUrl(null)
@@ -134,7 +122,8 @@ function RequestDetail() {
         setDescriptionOn(true);
 
     }
-    const  AproveHandler=()=>{
+
+    const  AproveHandler = ()=> {
         setIsReviewed(true);
         const data ={
             appid:process.env.REACT_APP_ID,
@@ -170,15 +159,14 @@ function RequestDetail() {
             appid:process.env.REACT_APP_ID,
             requestid:patientData.requestid,
             description:rejectreason,
+            content:"Document",
             status:4
         }
         axios({
             method: "POST",
-            url: "https://meindoc.app/backend/api/Update_Document_Reject.php",
+            url: `${config.DP_ROOT_URL}/Update_description.php`,
             data: JSON.stringify(data),
-            headers: {
-                "Content-Type": 'application/json'
-            }
+            headers: authHeader()
         }).then((response)=>{
             
             if(response.data.success === 1 && response.data.message ==="ok" && response.data.data){
@@ -194,14 +182,9 @@ function RequestDetail() {
         }).catch((error) => {
             console.log(error);
         }) 
-
-
     }
 
-
-
    const DocumentRejectHandler =()=>{
-
     setDDescriptionOn(true);
     setIsDocumentReviewed(true);
    }
@@ -342,12 +325,6 @@ const handleCopy = ()=>{
                                         </Grid>
 
                                     }
-                                    {
-                                        data.role === 'worker' && !videoUrl &&
-                                        <Grid item xs={6} mt={3}>
-                                        <Video func={getData} />
-                                        </Grid>
-                                    }
                                     </Grid>
 
                                 </Grid>
@@ -432,12 +409,6 @@ const handleCopy = ()=>{
                                             <Label color={'error'} fontSize="2rem">No document available</Label>
                                         </Grid>
 
-                                    }
-                                    {
-                                        data.role === 'worker' && !DocumentUrl &&
-                                        <Grid item xs={6} mt={3}>
-                                           <Document func={getDocumentData} />
-                                        </Grid>
                                     }
                                     </Grid>
                                 </Grid>
